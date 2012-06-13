@@ -65,6 +65,8 @@
 @property (nonatomic, strong) NSData *cachedResponse;
 @property (nonatomic, copy) MKNKResponseBlock cacheHandlingBlock;
 
+@property (nonatomic, copy) MKNKResponseBlock notModifiedHandlingBlock;
+
 #if TARGET_OS_IPHONE    
 @property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundTaskId;
 #endif
@@ -119,6 +121,7 @@
 
 @synthesize cachedResponse = _cachedResponse;
 @synthesize cacheHandlingBlock = _cacheHandlingBlock;
+@synthesize notModifiedHandlingBlock = _notModifiedHandlingBlock;
 @synthesize credentialPersistence = _credentialPersistence;
 
 @synthesize startPosition = _startPosition;
@@ -447,6 +450,7 @@
   [theCopy setDownloadStreams:[self.downloadStreams copy]];
   [theCopy setCachedResponse:[self.cachedResponse copy]];
   [theCopy setCacheHandlingBlock:self.cacheHandlingBlock];
+  [theCopy setNotModifiedHandlingBlock:self.notModifiedHandlingBlock];
   [theCopy setStartPosition:self.startPosition];
   [theCopy setCredentialPersistence:self.credentialPersistence];
   
@@ -776,6 +780,11 @@
   self.cacheHandlingBlock = cacheHandler;
 }
 
+- (void) setNotModifiedHandler:(MKNKResponseBlock)notModifiedHandlingBlock {
+
+  self.notModifiedHandlingBlock = notModifiedHandlingBlock;
+}
+
 #pragma mark -
 #pragma Main method
 -(void) main {
@@ -897,6 +906,7 @@
     self.downloadedDataSize = 0;
     
     self.cacheHandlingBlock = nil;
+    self.notModifiedHandlingBlock = nil;
     
     if(self.state == MKNetworkOperationStateExecuting)
       self.state = MKNetworkOperationStateFinished; // This notifies the queue and removes the operation.
@@ -1172,6 +1182,7 @@ totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
     }
     else if(self.response.statusCode == 304) {
       DLog(@"%@ not modified", self.url);
+      if (self.notModifiedHandlingBlock) self.notModifiedHandlingBlock(self);      
     }
     else if(self.response.statusCode == 307) {
       DLog(@"%@ temporarily redirected", self.url);

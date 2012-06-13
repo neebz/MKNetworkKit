@@ -532,6 +532,8 @@ typedef enum {
  */
 -(void) operationFailedWithError:(NSError*) error;
 
+- (void) setNotModifiedHandler:(MKNKResponseBlock)notModifiedHandlingBlock;
+
 // internal methods called by MKNetworkEngine only.
 // Don't touch
 -(BOOL) isCacheable;
